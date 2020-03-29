@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t mukeshbhati/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run mukeshbhati/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t mukeshbhati/multi-client ./client
+  - docker build -t mukeshbhati/multi-nginx ./nginx
+  - docker build -t mukeshbhati/multi-server ./server
+  - docker build -t mukeshbhati/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  #  Take those images and push them to docker hub
+  - docker push mukeshbhati/multi-client
+  - docker push mukeshbhati/multi-nginx
+  - docker push mukeshbhati/multi-server
+  - docker push mukeshbhati/multi-worker
